@@ -30,12 +30,16 @@ class ContactController extends Controller
         $data['email'] = @filter_var($request['email'], FILTER_SANITIZE_EMAIL);
         $data['telephone'] = @filter_var($request['telefono'], FILTER_SANITIZE_NUMBER_INT);
         $data['active'] = (bool) @filter_var( $request['activo'], FILTER_SANITIZE_STRING);
-        
+        $validacion = $this->esPalindromo($data['surname']);
+        $extra = "";
+        if($validacion){
+            $extra = ", El apellido es una palabra palíndromo.";
+        }
         $contact = Contact::create($data);
         
         if($contact != null){
             return response()->json([
-                'message' => "Creado con éxito",
+                'message' => "Creado con éxito".$extra,
                 'success' => true
             ], 200);
         } else {
@@ -50,6 +54,13 @@ class ContactController extends Controller
     public function read()
     {
         $contacts = Contact::all();
+        foreach ($contacts as $contacto) {
+            if($this->esPalindromo($contacto->surname)){
+                $contacto->palabra = true;
+            } else {
+                $contacto->palabra = false;
+            }
+        }
         if(count($contacts)> 0){
             return response()->json([
                 'success' =>true,
@@ -85,13 +96,17 @@ class ContactController extends Controller
         $data['telephone'] = @filter_var($request['telefono'], FILTER_SANITIZE_NUMBER_INT);
         $data['active'] = (bool) @filter_var( $request['activo'], FILTER_SANITIZE_STRING);
         $id = @filter_var($request['identificador'], FILTER_SANITIZE_NUMBER_INT);
-        
+        $validacion = $this->esPalindromo($data['surname']);
+        $extra = "";
+        if($validacion){
+            $extra = ", El apellido es una palabra palíndromo.";
+        }
         $contact = Contact::where('id', '=', $id)
             ->update($data);
 
         if($contact != null){
             return response()->json([
-                'message' => "Datos actualizados",
+                'message' => "Datos actualizados".$extra,
                 'success' => true
             ], 200);
         } else {
@@ -125,5 +140,18 @@ class ContactController extends Controller
             'success' => true
         ], 200);
         
+    }
+
+    private function esPalindromo($str){
+        if (strlen($str)<2) {
+            return false;
+        }
+        $str=strtolower(str_replace([" ", ",", "."], "", $str));
+        for ($i=0;$i<strlen($str);$i++) {
+            if ($str[$i]!=$str[strlen($str)-$i-1]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
