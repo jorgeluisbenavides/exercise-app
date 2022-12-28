@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use CloudCreativity\LaravelJsonApi\LaravelJsonApi;
+use \Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        LaravelJsonApi::defaultApi('free');
+        if(config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
     }
 }
