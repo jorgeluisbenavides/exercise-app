@@ -3,6 +3,7 @@
 namespace App\JsonApi\Contacts;
 
 use CloudCreativity\LaravelJsonApi\Validation\AbstractValidators;
+use CloudCreativity\LaravelJsonApi\Contracts\Validation\ValidatorInterface;
 use CloudCreativity\LaravelJsonApi\Document\Error\Error;
 use Illuminate\Support\Facades\Validator;
 
@@ -45,7 +46,12 @@ class Validators extends AbstractValidators
     protected function rules($record, array $data): array
     {
 
-        return [];
+        return [
+            'name' => 'required|string|min:3|max:255',
+            'surname' => 'required|string|min:3|max:255',
+            'telephone' => 'required|regex:/[0-9]{10}/',
+            'active' => 'required'
+        ];
     }
 
     /**
@@ -58,4 +64,33 @@ class Validators extends AbstractValidators
         return [];
     }
 
+    public function update($record, array $data): ValidatorInterface
+    {
+        
+        $validator = parent::update($record, $data);
+           
+        $validator->sometimes('email', "unique:contacts,email|required|email", function ($input) {
+            return $input->id >= 100;
+        });  
+        /* $validator = Validator::make($data->all(), [
+            'id' => 'exists:contacts,id|required|numeric',
+        ]); */
+        //dd($validator->errors());
+        return $validator;
+        /* $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'surname' => 'required|string',
+            'telephone' => 'required|regex:/[0-9]{10}/',
+            'active' => 'required',
+            'id' => 'exists:contacts,id|required|numeric',
+        ]);
+        
+        if($validator->fails()){
+            return response()->json([
+                'errors' => $validator->errors()->all(),
+                'success' =>false
+            ], 400); 
+        }
+        return $validator; */
+    }
 }
