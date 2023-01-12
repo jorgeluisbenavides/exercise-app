@@ -12,11 +12,11 @@ class ContactController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string',
-            'apellido' => 'required|string',
+            'name' => 'required|string',
+            'surname' => 'required|string',
             'email' => 'unique:contacts|required|email',
-            'telefono' => 'required|regex:/[0-9]{10}/',
-            'activo' => 'required'
+            'telephone' => 'required|regex:/[0-9]{10}/',
+            'active' => 'required'
         ]);
         if($validator->fails()){
             return response()->json([
@@ -25,11 +25,11 @@ class ContactController extends Controller
             ], 400); 
         }
 
-        $data['name'] = @filter_var($request['nombre'], FILTER_SANITIZE_SPECIAL_CHARS);
-        $data['surname'] = @filter_var($request['apellido'], FILTER_SANITIZE_STRING);
+        $data['name'] = @filter_var($request['name'], FILTER_SANITIZE_SPECIAL_CHARS);
+        $data['surname'] = @filter_var($request['surname'], FILTER_SANITIZE_STRING);
         $data['email'] = @filter_var($request['email'], FILTER_SANITIZE_EMAIL);
-        $data['telephone'] = @filter_var($request['telefono'], FILTER_SANITIZE_NUMBER_INT);
-        $data['active'] = (bool) @filter_var( $request['activo'], FILTER_SANITIZE_STRING);
+        $data['telephone'] = @filter_var($request['telephone'], FILTER_SANITIZE_NUMBER_INT);
+        $data['active'] = (bool) @filter_var( $request['active'], FILTER_SANITIZE_STRING);
         $validacion = $this->esPalindromo($data['surname']);
         $extra = "";
         if($validacion){
@@ -51,7 +51,7 @@ class ContactController extends Controller
         
     }
 
-    public function read()
+    public function index()
     {
         $contacts = Contact::all();
         foreach ($contacts as $contacto) {
@@ -77,11 +77,11 @@ class ContactController extends Controller
     {
         
         $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string',
-            'apellido' => 'required|string',
-            'telefono' => 'required|regex:/[0-9]{10}/',
-            'activo' => 'required',
-            'identificador' => 'exists:contacts,id|required|numeric',
+            'name' => 'required|string',
+            'surname' => 'required|string',
+            'telephone' => 'required|regex:/[0-9]{10}/',
+            'active' => 'required',
+            'id' => 'exists:contacts,id|required|numeric',
         ]);
         
         if($validator->fails()){
@@ -91,11 +91,11 @@ class ContactController extends Controller
             ], 400); 
         }
 
-        $data['name'] = @filter_var($request['nombre'], FILTER_SANITIZE_SPECIAL_CHARS);
-        $data['surname'] = @filter_var($request['apellido'], FILTER_SANITIZE_STRING);
-        $data['telephone'] = @filter_var($request['telefono'], FILTER_SANITIZE_NUMBER_INT);
-        $data['active'] = (bool) @filter_var( $request['activo'], FILTER_SANITIZE_STRING);
-        $id = @filter_var($request['identificador'], FILTER_SANITIZE_NUMBER_INT);
+        $data['name'] = @filter_var($request['name'], FILTER_SANITIZE_SPECIAL_CHARS);
+        $data['surname'] = @filter_var($request['surname'], FILTER_SANITIZE_STRING);
+        $data['telephone'] = @filter_var($request['telephone'], FILTER_SANITIZE_NUMBER_INT);
+        $data['active'] = (bool) @filter_var( $request['active'], FILTER_SANITIZE_STRING);
+        $id = @filter_var($request['id'], FILTER_SANITIZE_NUMBER_INT);
         $validacion = $this->esPalindromo($data['surname']);
         $extra = "";
         if($validacion){
@@ -117,11 +117,11 @@ class ContactController extends Controller
         }
     }
 
-    public function delete(Request $request)
+    public function delete($contact)
     {
         
-        $validator = Validator::make($request->all(), [
-            'identificador' => 'exists:contacts,id|required|numeric',
+        /* $validator = Validator::make($request->all(), [
+            'id' => 'exists:contacts,id|required|numeric',
         ]);
         if($validator->fails()){
             return response()->json([
@@ -130,8 +130,8 @@ class ContactController extends Controller
             ], 400); 
         }
         $id = @filter_var($request['identificador'], FILTER_SANITIZE_NUMBER_INT);
-        
-        $contact = Contact::find($id);
+         */
+        $contact = Contact::find($contact->id);
 
         $contact->delete(); 
 

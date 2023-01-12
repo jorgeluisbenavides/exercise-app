@@ -1,4 +1,4 @@
-var server = 'http://127.0.0.1:8000/api/';
+var server = 'http://127.0.0.1:8000/api/free/';
 
 $(document).ready(function() {
     $("#errors").hide();
@@ -44,7 +44,7 @@ function llenarContacto(contacto) {
 
 function cargarTabla() {
 
-    fetch(server + 'contacts/index', {
+    fetch(server + 'contacts', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -152,19 +152,21 @@ function guardar() {
         active = 1;
     }
     object = {
-        'nombre': $("#nombre").val(),
-        'apellido': $("#apellido").val(),
+        'name': $("#nombre").val(),
+        'surname': $("#apellido").val(),
         'email': $("#correo").val(),
-        'telefono': $("#telefono").val(),
-        'activo': active
+        'telephone': $("#telefono").val(),
+        'active': active
     }
     var esValido = validarFormulario();
     if (esValido == 0) {
-        fetch(server + 'contacts/store', {
+        fetch(server + 'contacts', {
                 method: 'POST',
                 body: JSON.stringify(object),
                 headers: {
-                    'Content-Type': 'application/json',
+                    //'Content-Type': 'application/json',
+                    'Content-Type': 'application/vnd.api+json',
+                    'Accept': 'application/vnd.api+json',
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             })
@@ -227,20 +229,22 @@ function actualizar() {
     if ($("#activo").is(':checked')) {
         active = 1;
     }
+    var id = parseInt($("#1e3y").val());
     object = {
-        'identificador': $("#1e3y").val(),
-        'nombre': $("#nombre").val(),
-        'apellido': $("#apellido").val(),
-        'telefono': $("#telefono").val(),
-        'activo': active
+        'id': id,
+        'name': $("#nombre").val(),
+        'surname': $("#apellido").val(),
+        'telephone': $("#telefono").val(),
+        'active': active
     }
     var esValido = validarFormulario();
     if (esValido == 0) {
-        fetch(server + 'contacts/update', {
-                method: 'PUT',
+        fetch(server + 'contacts/' + id, {
+                method: 'PATCH',
                 body: JSON.stringify(object),
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/vnd.api+json',
+                    'Accept': 'application/vnd.api+json',
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             })
@@ -299,7 +303,7 @@ function actualizar() {
 
 function eliminar(id) {
 
-    fetch(server + 'contacts/delete?identificador=' + id, {
+    fetch(server + 'contacts/' + id, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
