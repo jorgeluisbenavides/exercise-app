@@ -29,12 +29,12 @@ function llenarContacto(contacto) {
     $("#save").attr('onclick', 'actualizar()');
     $("#save").text("Actualizar");
     $("#1e3y").val(contacto.id);
-    $("#nombre").val(contacto.name);
-    $("#apellido").val(contacto.surname);
-    $("#correo").val(contacto.email);
+    $("#nombre").val(contacto.attributes.name);
+    $("#apellido").val(contacto.attributes.surname);
+    $("#correo").val(contacto.attributes.email);
     $("#correo").attr('disabled', 'disabled');
-    $("#telefono").val(contacto.telephone);
-    if (contacto.active === 1) {
+    $("#telefono").val(contacto.attributes.telephone);
+    if (contacto.attributes.active === 1) {
         $("#activo").prop('checked', true);
     } else {
         $("#activo").prop('checked', false);
@@ -55,20 +55,22 @@ function cargarTabla() {
             switch (response.status) {
                 case 200:
                     var contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                    if (contentType && contentType.indexOf("application/vnd.api+json") !== -1) {
                         return response.json().then(function(data) {
                             console.log(data);
                             var contacts = $("#contacts");
                             contacts.empty();
-                            $.each(data.data, function(i, v) {
+                            $.each(data.data, function(i, d) {
+                                var v = d.attributes;
                                 var activo = (v.active === 1) ? 'Si' : 'No';
-                                var contacto = "<tr><td>" + v.name + "</td><td>" + v.surname + "</td><td>" + v.palabra + "</td><td>" + v.email + "</td><td>" + v.telephone + "</td><td>" + activo + "</td><td><button class='btn btn-warning' onclick='llenarContacto(" + JSON.stringify(v) + ")'><i class='fa fa-pencil'></i></button><button class='btn btn-danger' onclick='eliminar(" + v.id + ")'><i class='fa fa-trash'></i></button></td></tr>";
+                                //var contacto = "<tr><td>" + v.name + "</td><td>" + v.surname + "</td><td>" + v.palabra + "</td><td>" + v.email + "</td><td>" + v.telephone + "</td><td>" + activo + "</td><td><button class='btn btn-warning' onclick='llenarContacto(" + JSON.stringify(v) + ")'><i class='fa fa-pencil'></i></button><button class='btn btn-danger' onclick='eliminar(" + v.id + ")'><i class='fa fa-trash'></i></button></td></tr>";
+                                var contacto = "<tr><td>" + v.name + "</td><td>" + v.surname + "</td><td>       N/A      </td><td>" + v.email + "</td><td>" + v.telephone + "</td><td>" + activo + "</td><td><button class='btn btn-warning' onclick='llenarContacto(" + JSON.stringify(d) + ")'><i class='fa fa-pencil'></i></button><button class='btn btn-danger' onclick='eliminar(" + d.id + ")'><i class='fa fa-trash'></i></button></td></tr>";
                                 contacts.append(contacto);
                             });
                         });
                     } else {
                         console.log("Oops, we haven't got JSON!");
-                        console.log(contentType, contentType.indexOf("application/json"));
+                        console.log(contentType, contentType.indexOf("application/vnd.api+json"));
                     }
                     break;
                 case 204:
@@ -151,12 +153,18 @@ function guardar() {
     if ($("#activo").is(':checked')) {
         active = 1;
     }
-    object = {
-        'name': $("#nombre").val(),
-        'surname': $("#apellido").val(),
-        'email': $("#correo").val(),
-        'telephone': $("#telefono").val(),
-        'active': active
+    object = 
+    {
+        "data":{
+            "type":"contacts",
+            "attributes":{
+                'name': $("#nombre").val(),
+                'surname': $("#apellido").val(),
+                'email': $("#correo").val(),
+                'telephone': $("#telefono").val(),
+                'active': active
+            }
+        }
     }
     var esValido = validarFormulario();
     if (esValido == 0) {
@@ -172,6 +180,17 @@ function guardar() {
             })
             .then(function(response) {
                 switch (response.status) {
+                    case 201:
+                        $("#errors").removeClass("alert-danger");
+                        $("#errors").addClass("alert-success");
+                        var errors = $("#errors");
+                        errors.empty();
+                        var msg = "<li>Registro con exito</li>";
+                        errors.append(msg);
+                        limpiarVariables();
+                        cargarTabla();
+                        $("#errors").show();
+                        break;
                     case 200:
                         var contentType = response.headers.get("content-type");
                         if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -192,19 +211,21 @@ function guardar() {
                             console.log(contentType, contentType.indexOf("application/json"));
                         }
                         break;
-                    case 400:
+                    case 422:
                         var contentType = response.headers.get("content-type");
                         if (contentType && contentType.indexOf("application/json") !== -1) {
                             return response.json().then(function(data) {
-                                console.log(data.errors);
+                                console.log(data);
                                 $("#errors").removeClass("alert-success");
                                 $("#errors").addClass("alert-danger");
                                 var errors = $("#errors");
                                 errors.empty();
-                                $.each(data.errors, function(i, v) {
+                                var error = "<li>" + data.message + "</li>";
+                                errors.append(error);
+                                /* $.each(data.errors, function(i, v) {
                                     var error = "<li>" + v + "</li>";
                                     errors.append(error);
-                                });
+                                }); */
                                 $("#errors").show();
                             });
                         } else {
@@ -229,13 +250,19 @@ function actualizar() {
     if ($("#activo").is(':checked')) {
         active = 1;
     }
-    var id = parseInt($("#1e3y").val());
-    object = {
-        'id': id,
-        'name': $("#nombre").val(),
-        'surname': $("#apellido").val(),
-        'telephone': $("#telefono").val(),
-        'active': active
+    var id = $("#1e3y").val();
+    object = 
+    {
+        "data":{
+            "type":"contacts",
+            "id":id,
+            "attributes":{
+                'name': $("#nombre").val(),
+                'surname': $("#apellido").val(),
+                'telephone': $("#telefono").val(),
+                'active': active
+            }
+        }
     }
     var esValido = validarFormulario();
     if (esValido == 0) {
@@ -252,14 +279,14 @@ function actualizar() {
                 switch (response.status) {
                     case 200:
                         var contentType = response.headers.get("content-type");
-                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                        if (contentType && contentType.indexOf("application/vnd.api+json") !== -1) {
                             return response.json().then(function(data) {
                                 console.log(data);
                                 $("#errors").removeClass("alert-danger");
                                 $("#errors").addClass("alert-success");
                                 var errors = $("#errors");
                                 errors.empty();
-                                var msg = "<li>" + data.message + "</li>";
+                                var msg = "<li>Registro actualizado</li>";
                                 errors.append(msg);
                                 limpiarVariables();
                                 cargarTabla();
@@ -267,22 +294,23 @@ function actualizar() {
                             });
                         } else {
                             console.log("Oops, we haven't got JSON!");
-                            console.log(contentType, contentType.indexOf("application/json"));
+                            console.log(contentType, contentType.indexOf("application/vnd.api+json"));
                         }
                         break;
-                    case 400:
+                    case 404:
                         var contentType = response.headers.get("content-type");
                         if (contentType && contentType.indexOf("application/json") !== -1) {
                             return response.json().then(function(data) {
-                                console.log(data.errors);
                                 $("#errors").removeClass("alert-success");
                                 $("#errors").addClass("alert-danger");
                                 var errors = $("#errors");
                                 errors.empty();
-                                $.each(data.errors, function(i, v) {
+                                var error = "<li>" + data.message + "</li>";
+                                errors.append(error);
+                                /* $.each(data.errors, function(i, v) {
                                     var error = "<li>" + v + "</li>";
                                     errors.append(error);
-                                });
+                                }); */
                                 $("#errors").show();
                             });
                         } else {
@@ -324,6 +352,9 @@ function eliminar(id) {
                         console.log("Oops, we haven't got JSON!");
                         console.log(contentType, contentType.indexOf("application/json"));
                     }
+                    break;
+                case 204:
+                    cargarTabla();
                     break;
                 case 400:
 

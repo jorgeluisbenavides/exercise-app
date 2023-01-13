@@ -15,6 +15,6 @@ use CloudCreativity\LaravelJsonApi\Facades\JsonApi;
 }); */
 
 JsonApi::register('free')->routes(function($api){
-    /* $api->resource('contacts'); */
-    $api->resource('contacts')->controller(ContactController::class);
+    $api->resource('contacts');
+    /* $api->resource('contacts')->controller(ContactController::class); */
 });

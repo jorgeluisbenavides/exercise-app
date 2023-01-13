@@ -50,7 +50,7 @@ class Validators extends AbstractValidators
             'name' => 'required|string|min:3|max:255',
             'surname' => 'required|string|min:3|max:255',
             'telephone' => 'required|regex:/[0-9]{10}/',
-            'active' => 'required'
+            'active' => 'required',
         ];
     }
 
@@ -68,29 +68,11 @@ class Validators extends AbstractValidators
     {
         
         $validator = parent::update($record, $data);
-           
-        $validator->sometimes('email', "unique:contacts,email|required|email", function ($input) {
-            return $input->id >= 100;
+          
+        $validator->sometimes('email', "required|email", function ($input) {
+            //dd($input); 
+            return $input->email;
         });  
-        /* $validator = Validator::make($data->all(), [
-            'id' => 'exists:contacts,id|required|numeric',
-        ]); */
-        //dd($validator->errors());
         return $validator;
-        /* $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'surname' => 'required|string',
-            'telephone' => 'required|regex:/[0-9]{10}/',
-            'active' => 'required',
-            'id' => 'exists:contacts,id|required|numeric',
-        ]);
-        
-        if($validator->fails()){
-            return response()->json([
-                'errors' => $validator->errors()->all(),
-                'success' =>false
-            ], 400); 
-        }
-        return $validator; */
     }
 }
